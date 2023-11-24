@@ -55,7 +55,7 @@ module.exports = (err, req, res, next) => {
         console.log(error)
         let test = error.reason.toString();
         if (test.startsWith('Error: Argument passed in must be a single String of 12 bytes or a string of 24 hex characters')) error = handleCastErrorDB(error);
-        if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+        // if (error.code === 11000) error = handleDuplicateFieldsDB(error);
 
 
         sendErrorProd(error, res);
