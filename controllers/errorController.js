@@ -5,12 +5,18 @@ const handleCastErrorDB = err => {
     return new AppError(message, 400);
 };
 
-const handleDuplicateFieldsDB = error => {
-    const value = error.hasOwnProperty('keyValue') && error.keyValue.hasOwnProperty('name');
-    console.log(value)
-    const message = `Duplicate field value: x. Please use another value!`
-    console.log(error)
-}
+const handleDuplicateFieldsDB = err => {
+    const value = err.keyValue.name;
+    const message = `Duplicate field value: "${value}". Please use another value!`
+    return new AppError(message, 400);
+};
+
+const handleValidatorErrorDB = err => {
+    //In Javascript, we use Object.values to loop over objects
+    const errors = Object.values(err.errors).map(el => el.message)
+    const message = `Invalid input data. ${errors.join('. ')}`;
+    return new AppError(message, 400);
+};
 
 const sendErrorDev = (err, res) => {
     res.status(err.statusCode).json({
@@ -51,11 +57,14 @@ module.exports = (err, req, res, next) => {
     if (process.env.NODE_ENV === 'development') {
         sendErrorDev(err, res);
     } else if (process.env.NODE_ENV === 'production') {
+        console.log('hererererer',err);
         let error = { ...err };
-        console.log(error)
-        let test = error.reason.toString();
-        if (test.startsWith('Error: Argument passed in must be a single String of 12 bytes or a string of 24 hex characters')) error = handleCastErrorDB(error);
-        // if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+        if(error.reason != null){
+            let test = error.reason.toString();
+            if (test.startsWith('Error: Argument passed in must be a single String of 12 bytes or a string of 24 hex characters')) error = handleCastErrorDB(error);
+        }
+        if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+        if (error._message === 'Validation failed') error = handleValidatorErrorDB(error);
 
 
         sendErrorProd(error, res);
