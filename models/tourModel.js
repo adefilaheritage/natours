@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
+// const validator = require('validator');
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -88,6 +88,7 @@ tourSchema.virtual('durationWeeks').get(function() {
 
 //DOCUMENT MIDDLEWARE: runs before .save() and .create()
 tourSchema.pre('save', function(next) {
+    //pre  middleware woks between when the data is reeived and when it is persisted to the database
     this.slug = slugify(this.name, { lower: true });
     next();
 });
