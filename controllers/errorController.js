@@ -18,6 +18,16 @@ const handleValidatorErrorDB = err => {
     return new AppError(message, 400);
 };
 
+const handleJWTError = () => new AppError('Invalid token, Please log in again!', 401);
+// This is another way of writing the above line of code
+
+// const handleJWTError = () => {
+//     const message = 'Invalid token, Please log in again!';
+//     return new AppError(message, 401);
+// };
+
+const handleJWTExpiredError = () => new AppError('Your token has expired! Please log in again.', 401);
+
 const sendErrorDev = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status,
@@ -62,9 +72,11 @@ module.exports = (err, req, res, next) => {
         if(error.reason != null){
             let test = error.reason.toString();
             if (test.startsWith('Error: Argument passed in must be a single String of 12 bytes or a string of 24 hex characters')) error = handleCastErrorDB(error);
-        }
+        };
         if (error.code === 11000) error = handleDuplicateFieldsDB(error);
         if (error._message === 'Validation failed') error = handleValidatorErrorDB(error);
+        if (error.name === "JsonWebTokenError") error = handleJWTError();
+        if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
 
         sendErrorProd(error, res);
